@@ -10,6 +10,9 @@
 - 键盘控制（按键、组合键、文本输入）
 - 屏幕操作（截图、获取鼠标位置、获取屏幕尺寸）
 - 图片处理（获取图片参数、裁剪图片）
+- 屏幕绘图（在屏幕上绘制标记以确认坐标位置）
+- 图片绘制（在图片上永久绘制标记并保存）
+- 文件清理（清理截图和标记文件，释放磁盘空间）
 
 ## 快速开始
 
@@ -71,6 +74,48 @@ python scripts/image_utils.py info screenshot.png
 #### 图片处理
 - `crop x1 y1 x2 y2` - 裁剪图片
 
+### 3. 屏幕绘图 (`draw_overlay.py`)
+
+用于在屏幕上绘制临时标记以确认坐标位置，特别适用于校准坐标是否准确。
+
+#### 绘制标记
+- `marker type x y` - 在指定位置绘制标记（cross/circle/square/arrow/target）
+- `area x1 y1 x2 y2` - 绘制区域框选
+
+#### 标记类型
+- `cross` - 十字线
+- `circle` - 圆圈
+- `square` - 方框
+- `arrow` - 箭头（支持方向 up/down/left/right）
+- `target` - 靶心（圆圈+十字）
+
+### 4. 图片绘制 (`draw_on_image.py`)
+
+在图片上永久绘制标记并保存，适用于批量标记和生成参考图。
+
+#### 绘制标记
+- `marker type x y` - 在图片上绘制标记（cross/circle/square/arrow/target/point）
+- `area x1 y1 x2 y2` - 在图片上绘制区域框
+
+#### 优势
+- 批量标记多个位置，省钱高效
+- 生成带标注的参考图片
+- 支持连续标记（在已标记的图片上继续标记）
+
+### 5. 文件清理 (`cleanup.py`)
+
+清理截图和标记过程中产生的临时文件，释放磁盘空间。
+
+#### 功能
+- `analyze dir` - 分析临时文件占用情况
+- `clean dir` - 按时间或大小清理文件
+- `auto dir` - 自动清理（超出限制时删除最旧文件）
+
+#### 特点
+- 默认预览模式，防止误删
+- 支持按天数、文件大小筛选
+- 可自定义文件匹配模式
+
 ## 示例场景
 
 ### 自动发送消息
@@ -105,6 +150,52 @@ python scripts/keyboard_mouse.py type_text "password123"
 python scripts/keyboard_mouse.py mouse_click_at 500 600 left
 ```
 
+### 坐标校准工作流
+```bash
+# 1. 分析截图得到坐标 (3788, 2080)
+# 2. 在屏幕上绘制标记验证位置
+python scripts/draw_overlay.py marker target 3788 2080 --text "发送按钮" --duration 10
+
+# 3. 如果位置不对，调整后重新验证
+python scripts/draw_overlay.py marker target 3790 2090 --text "发送按钮-修正" --duration 10
+
+# 4. 确认无误后执行点击
+python scripts/keyboard_mouse.py mouse_click_at 3790 2090 left
+```
+
+### 图片标注工作流（省钱版）
+```bash
+# 1. 截图
+python scripts/keyboard_mouse.py screenshot screen.png
+
+# 2. 批量在图片上标记多个候选位置（省钱！）
+python scripts/draw_on_image.py screen.png marker target 3788 2080 --text "候选1" -o marked1.png
+python scripts/draw_on_image.py screen.png marker target 3790 2090 --text "候选2" -o marked2.png
+python scripts/draw_on_image.py screen.png marker target 3785 2085 --text "候选3" -o marked3.png
+
+# 3. 查看标记后的图片，选择最准确的位置
+# 4. 只在确定的位置执行一次屏幕绘图确认
+python scripts/draw_overlay.py marker target 3790 2090 --duration 3
+
+# 5. 确认无误后执行点击
+python scripts/keyboard_mouse.py mouse_click_at 3790 2090 left
+```
+
+### 文件清理工作流
+```bash
+# 1. 分析文件占用情况
+python scripts/cleanup.py analyze .
+
+# 2. 预览清理（超过7天的文件）
+python scripts/cleanup.py clean . --days 7
+
+# 3. 确认后执行清理
+python scripts/cleanup.py clean . --days 7 --execute
+
+# 或者设置自动清理策略
+python scripts/cleanup.py auto . --max-files 20 --max-size 50
+```
+
 ## 坐标系统
 
 - **原点 (0, 0)**：屏幕左上角
@@ -134,7 +225,10 @@ openclaw-pyautogui-skill/
 ├── README.md             # 本文件
 └── scripts/
     ├── keyboard_mouse.py # 键鼠控制脚本
-    └── image_utils.py    # 图片处理脚本
+    ├── image_utils.py    # 图片处理脚本
+    ├── draw_overlay.py   # 屏幕绘图标记脚本
+    ├── draw_on_image.py  # 图片绘制标记脚本
+    └── cleanup.py        # 文件清理工具脚本
 ```
 
 ## 依赖
