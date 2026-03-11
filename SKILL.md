@@ -104,7 +104,14 @@ python3 scripts/keyboard_mouse.py type_text "你好世界" --interval 0.05
 ```bash
 # 截取整个屏幕
 python3 scripts/keyboard_mouse.py screenshot /tmp/screenshot.png
+
+# Windows 示例
+python scripts/keyboard_mouse.py screenshot "E:\\temp\\screenshot.png"
 ```
+
+**截图参数：**
+- 支持格式：PNG（推荐）、JPG、BMP 等
+- 截图范围：整个主屏幕（多显示器环境下为主显示器）
 
 ## 常用按键名称
 
@@ -202,3 +209,88 @@ $ python3 scripts/image_utils.py info screenshot.png
   "file_size_kb": 2048.0
 }
 ```
+
+### 图片参数说明
+
+| 参数 | 说明 | 示例值 |
+|------|------|--------|
+| `width` | 图片宽度（像素） | 1920, 3840 |
+| `height` | 图片高度（像素） | 1080, 2160 |
+| `format` | 图片格式 | PNG, JPEG, GIF, BMP, WEBP |
+| `mode` | 颜色模式 | RGB(彩色), RGBA(带透明), L(灰度) |
+| `file_size_bytes` | 文件大小（字节） | 2097152 |
+| `file_size_kb` | 文件大小（KB） | 2048.0 |
+
+### 坐标系统说明
+
+**屏幕坐标系：**
+- 原点 (0, 0) 在屏幕左上角
+- X 轴向右增加
+- Y 轴向下增加
+
+**裁剪坐标：**
+- `x1, y1`: 裁剪区域左上角坐标
+- `x2, y2`: 裁剪区域右下角坐标
+- 裁剪后的图片尺寸 = (x2 - x1) × (y2 - y1)
+
+**示例：**
+```bash
+# 从截图中裁剪出右下角的区域 (假设屏幕为 1920x1080)
+python3 scripts/image_utils.py crop screenshot.png 1520 880 1920 1080
+```
+
+### 图片工具示例场景
+
+#### 分析截图中的元素位置
+```bash
+# 1. 先获取截图尺寸
+python3 scripts/image_utils.py size screenshot.png
+
+# 2. 裁剪出特定区域（如右下角 400x200 区域）
+python3 scripts/image_utils.py crop screenshot.png 3440 1960 3840 2160 -o bottom_right.png
+```
+
+#### 批量处理图片
+```bash
+# 快速获取多张图片的尺寸
+for img in *.png; do
+    echo -n "$img: "
+    python3 scripts/image_utils.py size "$img"
+done
+```
+
+#### 截取屏幕区域
+```bash
+# 结合截图和裁剪功能获取特定区域
+python3 scripts/keyboard_mouse.py screenshot full.png
+python3 scripts/image_utils.py crop full.png 500 300 1000 800 -o region.png
+```
+
+---
+
+## 命令速查表
+
+### 键鼠控制脚本
+
+| 命令 | 功能 | 示例 |
+|------|------|------|
+| `screen_size` | 获取屏幕尺寸 | `keyboard_mouse.py screen_size` |
+| `mouse_position` | 获取鼠标位置 | `keyboard_mouse.py mouse_position` |
+| `mouse_move x y` | 移动鼠标 | `keyboard_mouse.py mouse_move 500 300` |
+| `mouse_click button` | 点击鼠标 | `keyboard_mouse.py mouse_click left` |
+| `mouse_click_at x y button` | 指定位置点击 | `keyboard_mouse.py mouse_click_at 500 300 left` |
+| `mouse_double_click x y` | 双击 | `keyboard_mouse.py mouse_double_click 500 300` |
+| `mouse_drag x1 y1 x2 y2` | 拖拽 | `keyboard_mouse.py mouse_drag 500 300 800 600` |
+| `mouse_scroll amount` | 滚动 | `keyboard_mouse.py mouse_scroll 5` |
+| `key_press key` | 按键 | `keyboard_mouse.py key_press enter` |
+| `key_hotkey key1 key2` | 组合键 | `keyboard_mouse.py key_hotkey ctrl c` |
+| `type_text text` | 输入文字 | `keyboard_mouse.py type_text "Hello"` |
+| `screenshot path` | 截图 | `keyboard_mouse.py screenshot img.png` |
+
+### 图片工具脚本
+
+| 命令 | 功能 | 示例 |
+|------|------|------|
+| `info path` | 获取完整信息 | `image_utils.py info photo.png` |
+| `size path` | 仅获取尺寸 | `image_utils.py size photo.jpg` |
+| `crop x1 y1 x2 y2` | 裁剪图片 | `image_utils.py crop img.png 100 100 500 500` |
