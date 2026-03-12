@@ -121,6 +121,39 @@ python scripts/keyboard_mouse.py screenshot "E:\\temp\\screenshot.png"
 - Supported formats: PNG (recommended), JPG, BMP, etc.
 - Scope: primary monitor (in multi-monitor setups)
 
+### Region Screenshot
+
+```bash
+# Screenshot specific region (x1, y1, x2, y2)
+python3 scripts/keyboard_mouse.py screenshot_region region.png 100 100 500 500
+
+# Windows example - capture QQ chat window area
+python scripts/keyboard_mouse.py screenshot_region qq_window.png 2800 300 3800 1200
+```
+
+**Parameters:**
+- `x1, y1`: Top-left corner coordinates
+- `x2, y2`: Bottom-right corner coordinates
+- Order doesn't matter (automatically calculated)
+
+### Copy & Paste
+
+```bash
+# Copy text to clipboard
+python3 scripts/keyboard_mouse.py copy "Text to copy"
+
+# Paste from clipboard (Ctrl+V)
+python3 scripts/keyboard_mouse.py paste
+
+# Copy and paste in one command (fastest way to input text)
+python3 scripts/keyboard_mouse.py copy_paste "Text to input directly"
+```
+
+**Use cases:**
+- `copy_paste` is faster than `type_text` for long text
+- Use `copy_paste` when you want to skip typing animation
+- Use `type_text` when you need to simulate realistic typing
+
 ## Common key names
 
 - Letters: `a` `b` `c` ...

@@ -134,6 +134,73 @@ def take_screenshot(output_path):
         sys.exit(1)
 
 
+def take_region_screenshot(output_path, x1, y1, x2, y2):
+    """区域截图"""
+    try:
+        # 确保坐标顺序正确（左上角到右下角）
+        left = min(int(x1), int(x2))
+        top = min(int(y1), int(y2))
+        right = max(int(x1), int(x2))
+        bottom = max(int(y1), int(y2))
+        
+        screenshot = pyautogui.screenshot(region=(left, top, right - left, bottom - top))
+        screenshot.save(output_path)
+        print(f'区域截图已保存: {output_path}')
+        print(f'区域: ({left}, {top}) - ({right}, {bottom}), 尺寸: {right - left} x {bottom - top}')
+    except Exception as e:
+        print(f'区域截图失败: {e}', file=sys.stderr)
+        sys.exit(1)
+
+
+def copy_to_clipboard(text):
+    """将文本复制到剪切板"""
+    try:
+        import pyperclip
+        pyperclip.copy(text)
+        print(f'已复制到剪切板: {text[:50]}{"..." if len(text) > 50 else ""}')
+    except ImportError:
+        print("错误: 未安装 pyperclip。请运行: pip3 install pyperclip", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f'复制到剪切板失败: {e}', file=sys.stderr)
+        sys.exit(1)
+
+
+def paste_from_clipboard():
+    """从剪切板粘贴"""
+    try:
+        pyautogui.keyDown('ctrl')
+        pyautogui.keyDown('v')
+        pyautogui.keyUp('v')
+        pyautogui.keyUp('ctrl')
+        print('已粘贴剪切板内容')
+    except Exception as e:
+        print(f'粘贴失败: {e}', file=sys.stderr)
+        sys.exit(1)
+
+
+def copy_and_paste(text):
+    """复制文本到剪切板并直接粘贴"""
+    try:
+        import pyperclip
+        # 复制到剪切板
+        pyperclip.copy(text)
+        print(f'已复制到剪切板: {text[:50]}{"..." if len(text) > 50 else ""}')
+        
+        # 粘贴
+        pyautogui.keyDown('ctrl')
+        pyautogui.keyDown('v')
+        pyautogui.keyUp('v')
+        pyautogui.keyUp('ctrl')
+        print('已粘贴')
+    except ImportError:
+        print("错误: 未安装 pyperclip。请运行: pip3 install pyperclip", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f'复制粘贴失败: {e}', file=sys.stderr)
+        sys.exit(1)
+
+
 def main():
     parser = argparse.ArgumentParser(description='跨平台键鼠自动化控制')
     subparsers = parser.add_subparsers(dest='command', help='可用命令')
@@ -193,6 +260,25 @@ def main():
     # 截图
     screenshot_parser = subparsers.add_parser('screenshot', help='截图')
     screenshot_parser.add_argument('output', help='输出文件路径')
+    
+    # 区域截图
+    region_parser = subparsers.add_parser('screenshot_region', help='区域截图')
+    region_parser.add_argument('output', help='输出文件路径')
+    region_parser.add_argument('x1', type=int, help='左上角X坐标')
+    region_parser.add_argument('y1', type=int, help='左上角Y坐标')
+    region_parser.add_argument('x2', type=int, help='右下角X坐标')
+    region_parser.add_argument('y2', type=int, help='右下角Y坐标')
+    
+    # 复制到剪切板
+    copy_parser = subparsers.add_parser('copy', help='复制文本到剪切板')
+    copy_parser.add_argument('text', help='要复制的文本')
+    
+    # 粘贴
+    subparsers.add_parser('paste', help='粘贴剪切板内容')
+    
+    # 复制并粘贴
+    copy_paste_parser = subparsers.add_parser('copy_paste', help='复制文本并直接粘贴')
+    copy_paste_parser.add_argument('text', help='要复制并粘贴的文本')
 
     args = parser.parse_args()
 
@@ -225,6 +311,14 @@ def main():
         type_text(args.text, args.interval)
     elif args.command == 'screenshot':
         take_screenshot(args.output)
+    elif args.command == 'screenshot_region':
+        take_region_screenshot(args.output, args.x1, args.y1, args.x2, args.y2)
+    elif args.command == 'copy':
+        copy_to_clipboard(args.text)
+    elif args.command == 'paste':
+        paste_from_clipboard()
+    elif args.command == 'copy_paste':
+        copy_and_paste(args.text)
     else:
         parser.print_help()
 

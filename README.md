@@ -40,6 +40,12 @@ python scripts/keyboard_mouse.py mouse_click left
 # Screenshot
 python scripts/keyboard_mouse.py screenshot screenshot.png
 
+# Region screenshot (x1, y1, x2, y2)
+python scripts/keyboard_mouse.py screenshot_region qq_window.png 2800 300 3800 1200
+
+# Copy and paste (fastest way to input text)
+python scripts/keyboard_mouse.py copy_paste "Hello World!"
+
 # Image info
 python scripts/image_utils.py info screenshot.png
 ```
@@ -65,6 +71,12 @@ python scripts/image_utils.py info screenshot.png
 
 #### Screenshot
 - `screenshot path` - Capture the primary screen to a file
+- `screenshot_region path x1 y1 x2 y2` - Capture specific region
+
+#### Clipboard
+- `copy text` - Copy text to clipboard
+- `paste` - Paste from clipboard (Ctrl+V)
+- `copy_paste text` - Copy and paste in one command (fastest text input)
 
 ### 2) Image Utilities (`image_utils.py`)
 
