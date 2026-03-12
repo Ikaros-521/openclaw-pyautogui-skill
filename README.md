@@ -4,7 +4,7 @@
 
 ## 简介
 
-本技能提供了一套完整的跨平台自动化工具，支持 Windows、Linux 和 macOS 系统。基于 PyAutoGUI 和 Pillow 实现，可用于：
+本技能提供了一套完整的跨平台自动化工具，支持 Windows、Linux 和 macOS 系统。基于 PyAutoGUI、Pillow 和 OpenCV 实现，可用于：
 
 - 鼠标控制（移动、点击、拖拽、滚动）
 - 键盘控制（按键、组合键、文本输入）
@@ -12,6 +12,7 @@
 - 图片处理（获取图片参数、裁剪图片）
 - 屏幕绘图（在屏幕上绘制标记以确认坐标位置）
 - 图片绘制（在图片上永久绘制标记并保存）
+- 图像查找（以图找图、以文找图OCR定位屏幕元素）
 - 文件清理（清理截图和标记文件，释放磁盘空间）
 
 ## 快速开始
@@ -102,7 +103,26 @@ python scripts/image_utils.py info screenshot.png
 - 生成带标注的参考图片
 - 支持连续标记（在已标记的图片上继续标记）
 
-### 5. 文件清理 (`cleanup.py`)
+### 5. 图像查找 (`image_finder.py`)
+
+基于 OpenCV 和 RapidOCR 实现，支持以图找图和以文找图。
+
+#### 以图找图
+- `image template` - 模板匹配查找图片位置
+- 支持多尺度匹配、多结果返回
+- 比 AI 识别更精确可靠
+
+#### 以文找图
+- `text str` - OCR 识别屏幕文字并定位
+- `text-all` - 识别屏幕上所有文字
+- 使用 RapidOCR，轻量快速，中文识别效果好
+
+#### 优势
+- 像素级精确匹配
+- 本地计算，无需 API 费用
+- 毫秒级响应速度
+
+### 6. 文件清理 (`cleanup.py`)
 
 清理截图和标记过程中产生的临时文件，释放磁盘空间。
 
@@ -181,6 +201,26 @@ python scripts/draw_overlay.py marker target 3790 2090 --duration 3
 python scripts/keyboard_mouse.py mouse_click_at 3790 2090 left
 ```
 
+### 图像查找工作流（推荐）
+```bash
+# 以图找图 - 最精确的自动化方案
+# 1. 先手动截取目标按钮保存为 template.png
+# 2. 使用模板匹配精确查找位置
+python scripts/image_finder.py image template.png --threshold 0.9
+
+# 3. 直接点击找到的位置
+python scripts/image_finder.py image template.png --click
+
+# 以文找图 - 适用于文字按钮
+python scripts/image_finder.py text "发送" --click
+
+# 在图片上标记所有候选位置（用于AI判断选择）
+python scripts/image_finder.py text "发送" --mark-on-image checked.png
+
+# 查看屏幕上所有文字
+python scripts/image_finder.py text-all --mark
+```
+
 ### 文件清理工作流
 ```bash
 # 1. 分析文件占用情况
@@ -228,6 +268,7 @@ openclaw-pyautogui-skill/
     ├── image_utils.py    # 图片处理脚本
     ├── draw_overlay.py   # 屏幕绘图标记脚本
     ├── draw_on_image.py  # 图片绘制标记脚本
+    ├── image_finder.py   # 图像查找脚本（以图找图、以文找图）
     └── cleanup.py        # 文件清理工具脚本
 ```
 
@@ -236,6 +277,9 @@ openclaw-pyautogui-skill/
 - Python 3.7+
 - pyautogui
 - Pillow
+- opencv-python
+- numpy
+- rapidocr_onnxruntime
 
 ## 许可证
 
