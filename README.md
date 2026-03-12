@@ -1,278 +1,243 @@
 # OpenClaw PyAutoGUI Skill
 
-跨平台键鼠自动化控制与图片处理工具
+Cross-platform mouse/keyboard automation and image utilities
 
-## 简介
+## Overview
 
-本技能提供了一套完整的跨平台自动化工具，支持 Windows、Linux 和 macOS 系统。基于 PyAutoGUI、Pillow 和 OpenCV 实现，可用于：
+This skill provides a complete set of cross-platform automation tools for Windows, Linux, and macOS. It is built on PyAutoGUI, Pillow, and OpenCV, and can be used for:
 
-- 鼠标控制（移动、点击、拖拽、滚动）
-- 键盘控制（按键、组合键、文本输入）
-- 屏幕操作（截图、获取鼠标位置、获取屏幕尺寸）
-- 图片处理（获取图片参数、裁剪图片）
-- 屏幕绘图（在屏幕上绘制标记以确认坐标位置）
-- 图片绘制（在图片上永久绘制标记并保存）
-- 图像查找（以图找图、以文找图OCR定位屏幕元素）
-- 文件清理（清理截图和标记文件，释放磁盘空间）
+- Mouse control (move, click, drag, scroll)
+- Keyboard control (press keys, hotkeys, type text)
+- Screen operations (screenshot, mouse position, screen size)
+- Image utilities (read image metadata, crop)
+- Screen overlay markers (temporary markers for coordinate verification)
+- Drawing on images (persist markers into image files)
+- Image/text locating (template matching and OCR)
+- File cleanup (remove generated screenshots/marked files to free disk space)
 
-## 快速开始
+## Quick Start
 
-### 安装依赖
+### Install dependencies
 
 ```bash
-# 键鼠控制
+# Mouse/keyboard automation
 pip install pyautogui
 
-# 图片处理
+# Image utilities
 pip install Pillow
 ```
 
-### 基本使用
+### Basic usage
 
 ```bash
-# 获取屏幕尺寸
+# Screen size
 python scripts/keyboard_mouse.py screen_size
 
-# 移动鼠标并点击
+# Move mouse and click
 python scripts/keyboard_mouse.py mouse_move 500 300
 python scripts/keyboard_mouse.py mouse_click left
 
-# 截图
+# Screenshot
 python scripts/keyboard_mouse.py screenshot screenshot.png
 
-# 获取图片信息
+# Image info
 python scripts/image_utils.py info screenshot.png
 ```
 
-## 功能模块
+## Modules
 
-### 1. 键鼠控制 (`keyboard_mouse.py`)
+### 1) Mouse & Keyboard (`keyboard_mouse.py`)
 
-#### 鼠标操作
-- `screen_size` - 获取屏幕尺寸
-- `mouse_position` - 获取当前鼠标位置
-- `mouse_move x y` - 移动鼠标到指定位置
-- `mouse_click button` - 点击鼠标（left/right/middle）
-- `mouse_click_at x y button` - 在指定位置点击
-- `mouse_double_click x y` - 双击
-- `mouse_drag x1 y1 x2 y2` - 拖拽
-- `mouse_scroll amount` - 滚动（正数向上，负数向下）
+#### Mouse
+- `screen_size` - Get screen size
+- `mouse_position` - Get current mouse position
+- `mouse_move x y` - Move mouse to (x, y)
+- `mouse_click button` - Click mouse (left/right/middle)
+- `mouse_click_at x y button` - Click at (x, y)
+- `mouse_double_click x y` - Double click at (x, y)
+- `mouse_drag x1 y1 x2 y2` - Drag from (x1, y1) to (x2, y2)
+- `mouse_scroll amount` - Scroll (positive = up, negative = down)
 
-#### 键盘操作
-- `key_press key` - 按下单个按键
-- `key_hotkey key1 key2 ...` - 组合键
-- `type_text text` - 输入文字
+#### Keyboard
+- `key_press key` - Press a single key
+- `key_hotkey key1 key2 ...` - Press a hotkey combination
+- `type_text text` - Type text
 
-#### 截图
-- `screenshot path` - 截取整个屏幕
+#### Screenshot
+- `screenshot path` - Capture the primary screen to a file
 
-### 2. 图片工具 (`image_utils.py`)
+### 2) Image Utilities (`image_utils.py`)
 
-#### 获取图片信息
-- `info path` - 获取完整信息（尺寸、格式、文件大小等）
-- `size path` - 仅获取尺寸（快速模式）
+#### Image info
+- `info path` - Full info (size/format/filesize/etc.)
+- `size path` - Size only (fast)
 
-#### 图片处理
-- `crop x1 y1 x2 y2` - 裁剪图片
+#### Image processing
+- `crop x1 y1 x2 y2` - Crop an image
 
-### 3. 屏幕绘图 (`draw_overlay.py`)
+### 3) Screen Overlay (`draw_overlay.py`)
 
-用于在屏幕上绘制临时标记以确认坐标位置，特别适用于校准坐标是否准确。
+Draw temporary markers on the screen for coordinate calibration and debugging.
 
-#### 绘制标记
-- `marker type x y` - 在指定位置绘制标记（cross/circle/square/arrow/target）
-- `area x1 y1 x2 y2` - 绘制区域框选
+#### Commands
+- `marker type x y` - Draw a marker at (x, y) (cross/circle/square/arrow/target)
+- `area x1 y1 x2 y2` - Draw a rectangular area
 
-#### 标记类型
-- `cross` - 十字线
-- `circle` - 圆圈
-- `square` - 方框
-- `arrow` - 箭头（支持方向 up/down/left/right）
-- `target` - 靶心（圆圈+十字）
+#### Marker types
+- `cross` - Crosshair
+- `circle` - Circle
+- `square` - Square
+- `arrow` - Arrow (direction: up/down/left/right)
+- `target` - Target (circle + crosshair)
 
-### 4. 图片绘制 (`draw_on_image.py`)
+### 4) Draw on Image (`draw_on_image.py`)
 
-在图片上永久绘制标记并保存，适用于批量标记和生成参考图。
+Draw markers permanently into an image file, useful for batch-marking candidates and generating references.
 
-#### 绘制标记
-- `marker type x y` - 在图片上绘制标记（cross/circle/square/arrow/target/point）
-- `area x1 y1 x2 y2` - 在图片上绘制区域框
+#### Commands
+- `marker type x y` - Draw a marker (cross/circle/square/arrow/target/point)
+- `area x1 y1 x2 y2` - Draw a rectangular area
 
-#### 优势
-- 批量标记多个位置，省钱高效
-- 生成带标注的参考图片
-- 支持连续标记（在已标记的图片上继续标记）
+#### Highlights
+- Batch mark many candidates cheaply
+- Generate shareable, annotated reference images
+- Supports incremental marking (mark an already-marked image again)
 
-### 5. 图像查找 (`image_finder.py`)
+### 5) Image Finder (`image_finder.py`)
 
-基于 OpenCV 和 RapidOCR 实现，支持以图找图和以文找图。
+Built on OpenCV + RapidOCR. Supports template matching and OCR text locating.
 
-#### 以图找图
-- `image template` - 模板匹配查找图片位置
-- 支持多尺度匹配、多结果返回
-- 比 AI 识别更精确可靠
+#### Template matching
+- `image template` - Find template on screen
+- Supports multi-scale matching and multiple results
+- More accurate and repeatable than manual coordinate guessing
 
-#### 以文找图
-- `text str` - OCR 识别屏幕文字并定位
-- `text-all` - 识别屏幕上所有文字
-- 使用 RapidOCR，轻量快速，中文识别效果好
+#### OCR text locating
+- `text str` - Recognize and locate text on the screen
+- `text-all` - Recognize all text on the screen
+- Uses RapidOCR (lightweight and fast)
 
-#### 优势
-- 像素级精确匹配
-- 本地计算，无需 API 费用
-- 毫秒级响应速度
+#### Highlights
+- Pixel-level matching for templates
+- Local compute (no API cost)
+- Fast response time
 
-### 6. 文件清理 (`cleanup.py`)
+### 6) Cleanup (`cleanup.py`)
 
-清理截图和标记过程中产生的临时文件，释放磁盘空间。
+Clean up temporary files (screenshots / annotated images) to free disk space.
 
-#### 功能
-- `analyze dir` - 分析临时文件占用情况
-- `clean dir` - 按时间或大小清理文件
-- `auto dir` - 自动清理（超出限制时删除最旧文件）
+#### Commands
+- `analyze dir` - Analyze disk usage
+- `clean dir` - Clean by age/size filters
+- `auto dir` - Auto clean when limits are exceeded (delete oldest first)
 
-#### 特点
-- 默认预览模式，防止误删
-- 支持按天数、文件大小筛选
-- 可自定义文件匹配模式
+#### Highlights
+- Preview mode by default to prevent accidental deletion
+- Filter by days and/or file size
+- Customizable file matching patterns
 
-## 示例场景
+## Examples
 
-### 自动发送消息
+### Send a message automatically
 ```bash
-# 移动鼠标到输入框，点击，输入文字，发送
 python scripts/keyboard_mouse.py mouse_click_at 800 600 left
 python scripts/keyboard_mouse.py type_text "Hello World"
 python scripts/keyboard_mouse.py key_press enter
 ```
 
-### 截图并分析
+### Screenshot and analyze
 ```bash
-# 截图并获取图片尺寸
 python scripts/keyboard_mouse.py screenshot screen.png
 python scripts/image_utils.py info screen.png
 
-# 裁剪出右下角区域
 python scripts/image_utils.py crop screen.png 1520 880 1920 1080 -o corner.png
 ```
 
-### 自动化表单填写
+### Fill a form automatically
 ```bash
-# 点击第一个输入框
 python scripts/keyboard_mouse.py mouse_click_at 500 400 left
 python scripts/keyboard_mouse.py type_text "username@example.com"
 
-# 按 Tab 切换到下一个输入框
 python scripts/keyboard_mouse.py key_press tab
 python scripts/keyboard_mouse.py type_text "password123"
 
-# 点击提交按钮
 python scripts/keyboard_mouse.py mouse_click_at 500 600 left
 ```
 
-### 坐标校准工作流
+### Coordinate calibration workflow
 ```bash
-# 1. 分析截图得到坐标 (3788, 2080)
-# 2. 在屏幕上绘制标记验证位置
-python scripts/draw_overlay.py marker target 3788 2080 --text "发送按钮" --duration 10
-
-# 3. 如果位置不对，调整后重新验证
-python scripts/draw_overlay.py marker target 3790 2090 --text "发送按钮-修正" --duration 10
-
-# 4. 确认无误后执行点击
+python scripts/draw_overlay.py marker target 3788 2080 --text "Send button" --duration 10
+python scripts/draw_overlay.py marker target 3790 2090 --text "Send button (adjusted)" --duration 10
 python scripts/keyboard_mouse.py mouse_click_at 3790 2090 left
 ```
 
-### 图片标注工作流（省钱版）
+### Image annotation workflow (cost-saving)
 ```bash
-# 1. 截图
 python scripts/keyboard_mouse.py screenshot screen.png
 
-# 2. 批量在图片上标记多个候选位置（省钱！）
-python scripts/draw_on_image.py screen.png marker target 3788 2080 --text "候选1" -o marked1.png
-python scripts/draw_on_image.py screen.png marker target 3790 2090 --text "候选2" -o marked2.png
-python scripts/draw_on_image.py screen.png marker target 3785 2085 --text "候选3" -o marked3.png
+python scripts/draw_on_image.py screen.png marker target 3788 2080 --text "Candidate 1" -o marked1.png
+python scripts/draw_on_image.py screen.png marker target 3790 2090 --text "Candidate 2" -o marked2.png
+python scripts/draw_on_image.py screen.png marker target 3785 2085 --text "Candidate 3" -o marked3.png
 
-# 3. 查看标记后的图片，选择最准确的位置
-# 4. 只在确定的位置执行一次屏幕绘图确认
 python scripts/draw_overlay.py marker target 3790 2090 --duration 3
-
-# 5. 确认无误后执行点击
 python scripts/keyboard_mouse.py mouse_click_at 3790 2090 left
 ```
 
-### 图像查找工作流（推荐）
+### Image locating workflow (recommended)
 ```bash
-# 以图找图 - 最精确的自动化方案
-# 1. 先手动截取目标按钮保存为 template.png
-# 2. 使用模板匹配精确查找位置
 python scripts/image_finder.py image template.png --threshold 0.9
-
-# 3. 直接点击找到的位置
 python scripts/image_finder.py image template.png --click
 
-# 以文找图 - 适用于文字按钮
-python scripts/image_finder.py text "发送" --click
-
-# 在图片上标记所有候选位置（用于AI判断选择）
-python scripts/image_finder.py text "发送" --mark-on-image checked.png
-
-# 查看屏幕上所有文字
+python scripts/image_finder.py text "Send" --click
+python scripts/image_finder.py text "Send" --mark-on-image checked.png
 python scripts/image_finder.py text-all --mark
 ```
 
-### 文件清理工作流
+### Cleanup workflow
 ```bash
-# 1. 分析文件占用情况
 python scripts/cleanup.py analyze .
-
-# 2. 预览清理（超过7天的文件）
 python scripts/cleanup.py clean . --days 7
-
-# 3. 确认后执行清理
 python scripts/cleanup.py clean . --days 7 --execute
-
-# 或者设置自动清理策略
 python scripts/cleanup.py auto . --max-files 20 --max-size 50
 ```
 
-## 坐标系统
+## Coordinates
 
-- **原点 (0, 0)**：屏幕左上角
-- **X 轴**：向右增加
-- **Y 轴**：向下增加
+- Origin (0, 0) is the top-left corner of the screen
+- X increases to the right
+- Y increases downward
 
-## 安全提示
+## Safety Notes
 
-1. 操作前确认目标窗口已激活
-2. 谨慎使用组合键，避免触发系统快捷键
-3. 移动鼠标到屏幕左上角 (0,0) 会触发安全停止
-4. 建议在操作前添加延迟，给用户反应时间
+1. Make sure the target window is focused before running actions
+2. Be careful with system hotkeys to avoid unintended side effects
+3. Moving the mouse to the top-left corner (0, 0) triggers PyAutoGUI failsafe
+4. Add delays when needed to give yourself time to interrupt
 
-## 跨平台支持
+## Cross-platform Support
 
-| 平台 | 支持状态 | 备注 |
-|------|----------|------|
-| Windows | ✅ 完全支持 | 可能需要管理员权限 |
-| Linux | ✅ 支持 | 需要 X11 环境，Wayland 可能不支持 |
-| macOS | ✅ 支持 | 需要在系统设置 > 安全性与隐私 > 辅助功能 中授权 |
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Windows | ✅ Full | May require admin permissions in some environments |
+| Linux | ✅ Supported | Requires X11; Wayland may not work |
+| macOS | ✅ Supported | Requires Accessibility permission for Terminal/Python |
 
-## 项目结构
+## Project Layout
 
 ```
 openclaw-pyautogui-skill/
-├── SKILL.md              # 技能说明文档
-├── README.md             # 本文件
+├── SKILL.md              # Skill documentation
+├── README.md             # This file
 └── scripts/
-    ├── keyboard_mouse.py # 键鼠控制脚本
-    ├── image_utils.py    # 图片处理脚本
-    ├── draw_overlay.py   # 屏幕绘图标记脚本
-    ├── draw_on_image.py  # 图片绘制标记脚本
-    ├── image_finder.py   # 图像查找脚本（以图找图、以文找图）
-    └── cleanup.py        # 文件清理工具脚本
+    ├── keyboard_mouse.py # Mouse/keyboard automation
+    ├── image_utils.py    # Image utilities
+    ├── draw_overlay.py   # Screen overlay markers
+    ├── draw_on_image.py  # Draw markers on images
+    ├── image_finder.py   # Template matching + OCR locating
+    └── cleanup.py        # Cleanup tool
 ```
 
-## 依赖
+## Dependencies
 
 - Python 3.7+
 - pyautogui
@@ -281,6 +246,6 @@ openclaw-pyautogui-skill/
 - numpy
 - rapidocr_onnxruntime
 
-## 许可证
+## License
 
 MIT License
