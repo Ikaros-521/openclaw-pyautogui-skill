@@ -486,6 +486,246 @@ python3 scripts/keyboard_mouse.py mouse_click_at 3548 1462 left
 
 ---
 
+## Workflow Patterns
+
+Standard workflow patterns for reliable UI automation. These patterns combine the tools above into proven strategies.
+
+### Core Principles
+
+1. **Step-by-step confirmation**: Pause, check, and adjust at each step
+2. **Human-friendly**: Support manual intervention at any time
+3. **Failure recovery**: Retry or skip on failure
+4. **Flexible composition**: Combine strategies as needed
+
+### Pattern 1: Locate-Verify-Click
+
+**Workflow:**
+```
+1. Screenshot / region screenshot
+2. OCR/image finder to locate target
+3. Mark all candidates on image
+4. AI/human selects the correct one
+5. Draw overlay on screen to confirm position
+6. Click (or manual click)
+```
+
+**Use cases:** Button clicks, menu selections
+
+**Command sequence:**
+```bash
+# Region screenshot to reduce analysis scope
+python3 scripts/keyboard_mouse.py screenshot_region check.png 2800 300 3800 1200
+
+# OCR to find candidates
+python3 scripts/image_finder.py text "Send" --mark-on-image candidates.png
+
+# Overlay confirmation on screen
+python3 scripts/draw_overlay.py marker target 3548 1462 --duration 3
+
+# Click after confirmation
+python3 scripts/keyboard_mouse.py mouse_click_at 3548 1462 left
+```
+
+### Pattern 2: Search-Input-Verify
+
+**Workflow:**
+```
+1. Check if target already exists
+2. If not, open search
+3. Type search keyword
+4. Screenshot to verify search results
+5. Click the correct result
+6. Confirm target appeared
+```
+
+**Use cases:** Finding contacts, search functions
+
+**Command sequence:**
+```bash
+# 1. Check if exists
+python3 scripts/image_finder.py text "John" --mark-on-image check1.png
+
+# 2. Click search box (estimated or located)
+python3 scripts/keyboard_mouse.py mouse_click_at 2950 250 left
+
+# 3. Quick input via clipboard
+python3 scripts/keyboard_mouse.py copy_paste "John"
+
+# 4. Verify results
+python3 scripts/keyboard_mouse.py screenshot_region result.png 2800 400 3200 800
+python3 scripts/image_finder.py text "John" --mark-on-image check2.png
+
+# 5. Click result
+python3 scripts/keyboard_mouse.py mouse_click_at 3000 600 left
+
+# 6. Confirm target appeared
+python3 scripts/image_finder.py text "John" --mark-on-image verify.png
+```
+
+### Pattern 3: Form Filling
+
+**Workflow:**
+```
+1. Locate first field
+2. Click input box
+3. Enter value (copy_paste)
+4. Locate next field (Tab or click)
+5. Repeat until all fields complete
+6. Screenshot to confirm
+7. Click submit
+```
+
+**Use cases:** Form filling, configuration settings
+
+**Command sequence:**
+```bash
+# Process each field
+python3 scripts/keyboard_mouse.py mouse_click_at 1000 500 left  # Field 1
+python3 scripts/keyboard_mouse.py copy_paste "value1"
+
+python3 scripts/keyboard_mouse.py mouse_click_at 1000 600 left  # Field 2
+python3 scripts/keyboard_mouse.py copy_paste "value2"
+
+# Or use Tab to navigate
+python3 scripts/keyboard_mouse.py key_press tab
+python3 scripts/keyboard_mouse.py copy_paste "value3"
+
+# Final verification and submit
+python3 scripts/keyboard_mouse.py screenshot verify.png
+python3 scripts/keyboard_mouse.py mouse_click_at 1200 800 left  # Submit button
+```
+
+### Pattern 4: Regional Precise Location
+
+**Workflow:**
+```
+1. Roughly locate region (e.g., know QQ is on the right)
+2. Region screenshot to narrow scope
+3. Precise locate within small region
+4. Calculate actual screen coord = region top-left + relative coord
+5. Click
+```
+
+**Use cases:** When you know approximate position but need precision
+
+**Command sequence:**
+```bash
+# 1. Region screenshot (QQ window area)
+python3 scripts/keyboard_mouse.py screenshot_region qq_area.png 2800 200 3840 1500
+
+# 2. Find within small region
+python3 scripts/image_finder.py text "Send" --mark-on-image local_find.png
+# Returns relative coords like (500, 1300)
+
+# 3. Calculate actual coords
+# x = 2800 + 500 = 3300
+# y = 200 + 1300 = 1500
+
+# 4. Click
+python3 scripts/keyboard_mouse.py mouse_click_at 3300 1500 left
+```
+
+### General Strategies
+
+**Strategy A: Progressive Confirmation**
+
+Instead of executing all at once, confirm at each step:
+
+```
+User: Click the send button for me
+
+AI:
+1. Screenshot
+2. OCR find "Send"
+3. Mark candidates for you to see
+4. Ask: Is candidate 2 correct?
+5. After your confirmation, draw overlay for 3 seconds
+6. Click only when you say "go"
+```
+
+**Strategy B: Failure Retry**
+
+Handle step failures:
+
+```
+- Can't find target → Expand region and retry
+- Multiple matches → Mark all and let user choose
+- Click not working → Check if window is focused
+- OCR failed → Switch to template matching
+```
+
+**Strategy C: Human-Machine Collaboration**
+
+Machine does what it's good at, human makes decisions:
+
+```
+Machine: Screenshot, locate, mark, execute clicks
+Human: Judge selections, confirm positions, handle exceptions
+```
+
+### Common Scenarios
+
+**QQ Message Sending:**
+```
+1. Check if QQ window exists
+2. Focus QQ window
+3. Check if contact is already open
+4. Search for contact (if not open)
+5. Type message
+6. Find and click Send button
+7. Verify message appears in chat
+```
+
+**Web Form:**
+```
+1. Locate form area (scroll if needed)
+2. For each field:
+   - Find label
+   - Click input box
+   - copy_paste value
+   - Tab or click next
+3. Screenshot to confirm
+4. Click submit
+5. Wait and verify result
+```
+
+### Best Practices
+
+1. **Prefer region screenshots** over full screen
+   - Reduces analysis time
+   - Improves OCR accuracy
+   - Reduces false matches
+
+2. **Mark multiple candidates** with `--mark-on-image`
+   - Let user/AI choose
+   - Avoid clicking wrong positions blindly
+
+3. **Use copy_paste instead of type_text** for long text
+   - Faster input
+   - Avoids Chinese input issues
+   - Good for fixed content
+
+4. **Offset clicking** when you know base position
+   - Base coord + offset = target coord
+   - Works for UIs with fixed relative positions
+
+5. **Screenshot at each important step**
+   - Easier to debug
+   - Can review the process
+   - Supports post-analysis
+
+### Error Handling
+
+| Problem | Solution |
+|---------|----------|
+| Can't find target | Expand region, lower confidence threshold, try different keywords |
+| Multiple matches | Mark all candidates, let human choose |
+| Click not working | Check window focus, add delay, retry |
+| OCR wrong | Switch to template matching, increase confidence |
+| Coordinate offset | Use relative coordinates, calibrate base points |
+
+---
+
 ## Cleanup
 
 ### Analyze disk usage

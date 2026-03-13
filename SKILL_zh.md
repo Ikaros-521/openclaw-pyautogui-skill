@@ -594,6 +594,242 @@ python3 scripts/keyboard_mouse.py mouse_click_at 3548 1462 left
 
 ---
 
+## 工作流模式
+
+可靠的UI自动化标准工作流模式。这些模式将上述工具组合成经过验证的策略。
+
+### 核心原则
+
+1. **分步确认**：每一步都可以暂停、检查、调整
+2. **人工干预友好**：支持随时人工介入
+3. **失败回退**：某步失败可以重试或跳过
+4. **灵活组合**：策略可以按需组合使用
+
+### 模式1：定位-确认-点击
+
+**工作流程：**
+```
+1. 截图/区域截图
+2. OCR/图像查找定位目标
+3. 在图片上标记所有候选
+4. AI/人工判断选择正确的
+5. 在屏幕上标记确认位置
+6. 点击（或人工点击）
+```
+
+**适用场景**：按钮点击、菜单选择
+
+**命令组合：**
+```bash
+# 区域截图减少分析量
+python3 scripts/keyboard_mouse.py screenshot_region check.png 2800 300 3800 1200
+
+# OCR查找多个候选
+python3 scripts/image_finder.py text "发送" --mark-on-image candidates.png
+
+# AI判断后屏幕标记
+python3 scripts/draw_overlay.py marker target 3548 1462 --duration 3
+
+# 确认后点击
+python3 scripts/keyboard_mouse.py mouse_click_at 3548 1462 left
+```
+
+### 模式2：搜索-输入-确认
+
+**工作流程：**
+```
+1. 检查目标是否已存在
+2. 不存在则打开搜索
+3. 输入搜索关键词
+4. 截图确认搜索结果
+5. 点击正确结果
+6. 确认目标已出现
+```
+
+**适用场景**：查找联系人、搜索功能
+
+**命令组合：**
+```bash
+# 1. 检查是否已存在
+python3 scripts/image_finder.py text "张三" --mark-on-image check1.png
+
+# 2. 点击搜索框（估计位置或查找）
+python3 scripts/keyboard_mouse.py mouse_click_at 2950 250 left
+
+# 3. 快速输入
+python3 scripts/keyboard_mouse.py copy_paste "张三"
+
+# 4. 截图确认结果
+python3 scripts/keyboard_mouse.py screenshot_region result.png 2800 400 3200 800
+python3 scripts/image_finder.py text "张三" --mark-on-image check2.png
+
+# 5. 点击结果
+python3 scripts/keyboard_mouse.py mouse_click_at 3000 600 left
+
+# 6. 确认目标出现
+python3 scripts/image_finder.py text "张三" --mark-on-image verify.png
+```
+
+### 模式3：表单填写
+
+**工作流程：**
+```
+1. 定位第一个字段
+2. 点击输入框
+3. 输入值（copy_paste）
+4. 定位下一个字段（Tab或点击）
+5. 重复直到所有字段完成
+6. 截图确认
+7. 点击提交
+```
+
+**适用场景**：表单填写、配置设置
+
+**命令组合：**
+```bash
+# 循环处理每个字段
+python3 scripts/keyboard_mouse.py mouse_click_at 1000 500 left  # 字段1
+python3 scripts/keyboard_mouse.py copy_paste "value1"
+
+python3 scripts/keyboard_mouse.py mouse_click_at 1000 600 left  # 字段2
+python3 scripts/keyboard_mouse.py copy_paste "value2"
+
+# 或使用Tab跳转
+python3 scripts/keyboard_mouse.py key_press tab
+python3 scripts/keyboard_mouse.py copy_paste "value3"
+
+# 最后截图确认并提交
+python3 scripts/keyboard_mouse.py screenshot verify.png
+python3 scripts/keyboard_mouse.py mouse_click_at 1200 800 left  # 提交按钮
+```
+
+### 模式4：区域化精准定位
+
+**工作流程：**
+```
+1. 先大致定位区域（如知道QQ在右侧）
+2. 区域截图缩小范围
+3. 在小范围内精确定位
+4. 计算实际屏幕坐标 = 区域左上角 + 相对坐标
+5. 点击
+```
+
+**适用场景**：知道大致位置但需要精确定位
+
+**命令组合：**
+```bash
+# 1. 区域截图（QQ窗口区域）
+python3 scripts/keyboard_mouse.py screenshot_region qq_area.png 2800 200 3840 1500
+
+# 2. 在小范围内查找
+python3 scripts/image_finder.py text "发送" --mark-on-image local_find.png
+# 返回相对坐标如 (500, 1300)
+
+# 3. 计算实际坐标
+# x = 2800 + 500 = 3300
+# y = 200 + 1300 = 1500
+
+# 4. 点击
+python3 scripts/keyboard_mouse.py mouse_click_at 3300 1500 left
+```
+
+### 通用策略
+
+**策略A：渐进式确认**
+
+不一次性执行完，而是每步都截图确认：
+
+```
+用户：帮我点发送按钮
+
+AI：
+1. 截图
+2. OCR查找"发送"
+3. 标记候选让你看
+4. 问：第2个候选对吗？
+5. 你确认后，屏幕标记3秒
+6. 你说"点"才点击
+```
+
+**策略B：失败重试**
+
+某步失败时的处理：
+
+```
+- 找不到目标 → 扩大区域截图重试
+- 找到多个 → 标记后让用户选
+- 点击无效 → 检查窗口是否前置
+- OCR失败 → 改用图像匹配
+```
+
+**策略C：人机协作**
+
+机器做擅长的事，人工做决策：
+
+```
+机器：截图、查找、标记、执行点击
+人工：判断选择、确认位置、处理异常
+```
+
+### 常见场景
+
+**QQ发消息：**
+```
+1. 检查QQ窗口是否存在
+2. 前置QQ窗口
+3. 检查联系人是否已打开
+4. 搜索联系人（如未打开）
+5. 输入消息
+6. 查找并点击发送按钮
+7. 验证消息出现在聊天记录
+```
+
+**网页表单：**
+```
+1. 定位表单区域（滚动到可见）
+2. 逐个字段：
+   - 找标签
+   - 点击输入框
+   - copy_paste 值
+   - Tab或点击下一个
+3. 截图确认
+4. 点击提交
+5. 等待并验证结果
+```
+
+### 最佳实践
+
+1. **区域优先**
+   - 尽量用 `screenshot_region` 代替全屏截图
+   - 减少分析时间、提高OCR准确率、减少误匹配
+
+2. **多候选标记**
+   - 找到多个结果时，用 `--mark-on-image` 显示所有候选
+   - 让用户/AI选择，避免盲目点击错误位置
+
+3. **使用 copy_paste 代替 type_text**
+   - 长文本输入时 copy_paste 更快
+   - 避免中文输入问题
+
+4. **偏移点击**
+   - 知道基准位置时：基准坐标 + 偏移 = 目标坐标
+   - 适用于相对位置固定的UI
+
+5. **每步截图留痕**
+   - 重要步骤保存截图，便于调试和事后分析
+
+### 错误处理
+
+| 问题 | 解决方案 |
+|------|---------|
+| 找不到目标 | 扩大区域、降低置信度、换关键词 |
+| 找到多个 | 标记所有候选，人工选择 |
+| 点击无效 | 检查窗口前置、增加延迟、重试 |
+| OCR识别错 | 改用图像匹配、提高置信度阈值 |
+| 坐标偏移 | 使用相对坐标、校准基准点 |
+
+---
+
 ## 文件清理工具
 
 ### 分析文件占用
