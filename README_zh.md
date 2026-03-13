@@ -40,6 +40,12 @@ python scripts/keyboard_mouse.py mouse_click left
 # 截图
 python scripts/keyboard_mouse.py screenshot screenshot.png
 
+# 区域截图 (x1, y1, x2, y2)
+python scripts/keyboard_mouse.py screenshot_region qq_window.png 2800 300 3800 1200
+
+# 复制并粘贴（长文本输入更快）
+python scripts/keyboard_mouse.py copy_paste "Hello World!"
+
 # 获取图片信息
 python scripts/image_utils.py info screenshot.png
 ```
@@ -65,6 +71,12 @@ python scripts/image_utils.py info screenshot.png
 
 #### 截图
 - `screenshot path` - 截取整个屏幕
+- `screenshot_region path x1 y1 x2 y2` - 截取指定区域
+
+#### 剪贴板
+- `copy text` - 复制文本到剪贴板
+- `paste` - 从剪贴板粘贴（Ctrl+V）
+- `copy_paste text` - 一条命令完成复制并粘贴（文本输入最快）
 
 ### 2. 图片工具 (`image_utils.py`)
 
